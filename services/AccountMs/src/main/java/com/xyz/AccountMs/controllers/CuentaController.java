@@ -1,5 +1,7 @@
 package com.xyz.AccountMs.controllers;
 
+import com.xyz.AccountMs.exceptions.ResourceNotFoundException;
+import com.xyz.AccountMs.exceptions.TransactionException;
 import com.xyz.AccountMs.models.CuentaRequest;
 import com.xyz.AccountMs.models.CuentaResponse;
 import com.xyz.AccountMs.models.TransaccionRequest;
@@ -27,7 +29,7 @@ public class CuentaController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CuentaResponse> getCuenta(@PathVariable Integer id) {
+    public ResponseEntity<CuentaResponse> getCuenta(@PathVariable Integer id) throws ResourceNotFoundException {
         return ResponseEntity.ok(cuentaService.getCuenta(id));
     }
 
@@ -42,18 +44,18 @@ public class CuentaController {
     }
 
     @PutMapping("/{id}/depositar")
-    public ResponseEntity<TransaccionResponse> realizarDeposito(@PathVariable Integer id, @RequestBody @Valid TransaccionRequest transaccionRequest) {
+    public ResponseEntity<TransaccionResponse> realizarDeposito(@PathVariable Integer id, @RequestBody @Valid TransaccionRequest transaccionRequest) throws ResourceNotFoundException{
         return ResponseEntity.ok(cuentaService.realizarDeposito(transaccionRequest, id));
     }
 
     @PutMapping("/{id}/retirar")
-    public ResponseEntity<TransaccionResponse> realizarRetiro(@PathVariable Integer id, @RequestBody @Valid TransaccionRequest transaccionRequest) {
+    public ResponseEntity<TransaccionResponse> realizarRetiro(@PathVariable Integer id, @RequestBody @Valid TransaccionRequest transaccionRequest) throws ResourceNotFoundException, TransactionException {
         return ResponseEntity.ok(cuentaService.realizarRetiro(transaccionRequest, id));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCuenta(@PathVariable Integer id) {
+    public ResponseEntity<Void> deleteCuenta(@PathVariable Integer id) throws ResourceNotFoundException{
         cuentaService.deleteCuenta(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 }

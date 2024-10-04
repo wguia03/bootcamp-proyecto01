@@ -1,5 +1,6 @@
 package com.xyz.CustomerMs.services;
 
+import com.xyz.CustomerMs.exceptions.AssociatedRecordException;
 import com.xyz.CustomerMs.exceptions.DuplicateFieldException;
 import com.xyz.CustomerMs.exceptions.ResourceNotFoundException;
 import com.xyz.CustomerMs.models.Cliente;
@@ -7,6 +8,7 @@ import com.xyz.CustomerMs.models.ClienteRequest;
 import com.xyz.CustomerMs.models.ClienteResponse;
 import com.xyz.CustomerMs.models.ClienteUpdate;
 import com.xyz.CustomerMs.repositories.ClienteRepository;
+import com.xyz.CustomerMs.repositories.CuentaRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,7 @@ public class ClienteService {
 
     private final ModelMapper modelMapper;
     private final ClienteRepository clienteRepository;
+    private final CuentaRepository cuentaRepository;
 
     public ClienteResponse getClienteById(Integer id) throws ResourceNotFoundException {
         Cliente cliente = clienteRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado"));
@@ -40,9 +43,12 @@ public class ClienteService {
         return clientes.stream().map(this::convertToClienteResponse).toList();
     }
 
-    public void deleteCliente(Integer id) throws ResourceNotFoundException{
+    public void deleteCliente(Integer id) throws ResourceNotFoundException, AssociatedRecordException {
         if(!clienteRepository.existsById(id)) {
             throw new ResourceNotFoundException("Cliente no encontrado");
+        }
+        if(cuentaRepository.existsByClienteId(id)) {
+            throw new AssociatedRecordException("No se puede eliminar el registro porque el cliente tiene cuentas activas");
         }
         clienteRepository.deleteById(id);
     }

@@ -1,4 +1,4 @@
-package com.xyz.CustomerMs.exceptions;
+package com.xyz.AccountMs.exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,15 +16,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler{
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage("Not Found", 404, ex.getMessage()));
     }
 
-    @ExceptionHandler(DuplicateFieldException.class)
+    @ExceptionHandler(TransactionException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<ErrorMessage> handleDuplicateFieldException(DuplicateFieldException ex) {
+    public ResponseEntity<ErrorMessage> handleTransactionException(TransactionException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorMessage("Bad Request", 400, ex.getMessage()));
-    }
-
-    @ExceptionHandler(AssociatedRecordException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ResponseEntity<ErrorMessage> handleAssociatedRecordException(AssociatedRecordException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorMessage("Conflict", 409, ex.getMessage()));
     }
 }

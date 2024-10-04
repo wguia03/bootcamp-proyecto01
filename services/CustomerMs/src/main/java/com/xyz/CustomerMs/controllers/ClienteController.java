@@ -1,5 +1,6 @@
 package com.xyz.CustomerMs.controllers;
 
+import com.xyz.CustomerMs.exceptions.AssociatedRecordException;
 import com.xyz.CustomerMs.exceptions.DuplicateFieldException;
 import com.xyz.CustomerMs.exceptions.ResourceNotFoundException;
 import com.xyz.CustomerMs.models.ClienteRequest;
@@ -45,12 +46,12 @@ public class ClienteController {
     @PutMapping("/{id}")
     public ResponseEntity<Void> updateCliente(@PathVariable Integer id, @RequestBody @Valid ClienteUpdate clienteUpdate) throws ResourceNotFoundException{
         clienteService.updateCliente(id, clienteUpdate);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCliente(@PathVariable Integer id) throws ResourceNotFoundException{
+    public ResponseEntity<Void> deleteCliente(@PathVariable Integer id) throws ResourceNotFoundException, AssociatedRecordException {
         clienteService.deleteCliente(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 }

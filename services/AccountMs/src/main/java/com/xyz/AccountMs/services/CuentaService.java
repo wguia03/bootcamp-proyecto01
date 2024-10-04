@@ -1,5 +1,7 @@
 package com.xyz.AccountMs.services;
 
+import com.xyz.AccountMs.exceptions.ResourceNotFoundException;
+import com.xyz.AccountMs.exceptions.TransactionException;
 import com.xyz.AccountMs.models.*;
 import com.xyz.AccountMs.repositories.ClienteRepository;
 import com.xyz.AccountMs.repositories.CuentaRepository;
@@ -28,8 +30,8 @@ public class CuentaService {
         return modelMapper.map(cuenta, CuentaResponse.class);
     }
 
-    public CuentaResponse getCuenta(Integer id) {
-        Cuenta cuenta = cuentaRepository.findById(id).orElseThrow();
+    public CuentaResponse getCuenta(Integer id) throws ResourceNotFoundException {
+        Cuenta cuenta = cuentaRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Cuenta no encontrada"));
         return modelMapper.map(cuenta, CuentaResponse.class);
     }
 
@@ -40,20 +42,20 @@ public class CuentaService {
                 .toList();
     }
 
-    public TransaccionResponse realizarDeposito(TransaccionRequest transaccion, Integer id){
-        Cuenta cuenta = cuentaRepository.findById(id).orElseThrow();
+    public TransaccionResponse realizarDeposito(TransaccionRequest transaccion, Integer id) throws ResourceNotFoundException {
+        Cuenta cuenta = cuentaRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Cuenta no encontrada"));
         cuenta.setSaldo(cuenta.getSaldo() + transaccion.monto());
         cuenta = cuentaRepository.save(cuenta);
         return new TransaccionResponse("Depósito realizado con éxito", cuenta.getSaldo());
     }
 
-    public TransaccionResponse realizarRetiro(TransaccionRequest transaccion, Integer id){
-        Cuenta cuenta = cuentaRepository.findById(id).orElseThrow();
+    public TransaccionResponse realizarRetiro(TransaccionRequest transaccion, Integer id) throws ResourceNotFoundException, TransactionException{
+        Cuenta cuenta = cuentaRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Cuenta no encontrada"));
         var saldoActual = cuenta.getSaldo();
         cuenta.setSaldo(cuenta.getSaldo() - transaccion.monto());
         if(cuenta.getTipoCuenta().toString().equals("AHORROS")){
             if(cuenta.getSaldo() < 0){
-                return new TransaccionResponse("No se puede realizar el retiro. Saldo insuficiente", saldoActual);
+                throw new TransactionException("No se puede realizar el retiro. Saldo insuficiente");
             } else {
                 cuenta = cuentaRepository.save(cuenta);
                 return new TransaccionResponse("Retiro realizado con éxito", cuenta.getSaldo());
@@ -61,7 +63,7 @@ public class CuentaService {
         }
         if(cuenta.getTipoCuenta().toString().equals("CORRIENTE")){
             if(cuenta.getSaldo() < -500){
-                return new TransaccionResponse("No se puede realizar el retiro. Saldo insuficiente", saldoActual);
+                throw new TransactionException("No se puede realizar el retiro. Saldo insuficiente");
             } else {
                 cuenta = cuentaRepository.save(cuenta);
                 return new TransaccionResponse("Retiro realizado con éxito", cuenta.getSaldo());
@@ -81,7 +83,10 @@ public class CuentaService {
         return numericString.substring(0, 16); // Ensure the length is 16 digits
     }
 
-    public void deleteCuenta(Integer id) {
+    public void deleteCuenta(Integer id) throws ResourceNotFoundException {
+        if (!cuentaRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Cuenta no encontrada");
+        }
         cuentaRepository.deleteById(id);
     }
 }
