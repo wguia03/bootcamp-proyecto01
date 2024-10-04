@@ -1,5 +1,7 @@
 package com.xyz.CustomerMs.controllers;
 
+import com.xyz.CustomerMs.exceptions.DuplicateFieldException;
+import com.xyz.CustomerMs.exceptions.ResourceNotFoundException;
 import com.xyz.CustomerMs.models.ClienteRequest;
 import com.xyz.CustomerMs.models.ClienteResponse;
 import com.xyz.CustomerMs.models.ClienteUpdate;
@@ -26,12 +28,12 @@ public class ClienteController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ClienteResponse> getClienteById(@PathVariable Integer id) {
+    public ResponseEntity<ClienteResponse> getClienteById(@PathVariable Integer id) throws ResourceNotFoundException {
         return ResponseEntity.ok(clienteService.getClienteById(id));
     }
 
     @PostMapping
-    public ResponseEntity<Void> createCliente(@RequestBody @Valid ClienteRequest clienteRequest) {
+    public ResponseEntity<Void> createCliente(@RequestBody @Valid ClienteRequest clienteRequest) throws DuplicateFieldException {
         ClienteResponse createdCliente = clienteService.createCliente(clienteRequest);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
@@ -41,13 +43,13 @@ public class ClienteController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Void> updateCliente(@PathVariable Integer id, @RequestBody @Valid ClienteUpdate clienteUpdate) {
+    public ResponseEntity<Void> updateCliente(@PathVariable Integer id, @RequestBody @Valid ClienteUpdate clienteUpdate) throws ResourceNotFoundException{
         clienteService.updateCliente(id, clienteUpdate);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCliente(@PathVariable Integer id) {
+    public ResponseEntity<Void> deleteCliente(@PathVariable Integer id) throws ResourceNotFoundException{
         clienteService.deleteCliente(id);
         return ResponseEntity.noContent().build();
     }

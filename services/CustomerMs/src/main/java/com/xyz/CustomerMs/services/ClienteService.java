@@ -1,5 +1,7 @@
 package com.xyz.CustomerMs.services;
 
+import com.xyz.CustomerMs.exceptions.DuplicateFieldException;
+import com.xyz.CustomerMs.exceptions.ResourceNotFoundException;
 import com.xyz.CustomerMs.models.Cliente;
 import com.xyz.CustomerMs.models.ClienteRequest;
 import com.xyz.CustomerMs.models.ClienteResponse;
@@ -10,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -18,12 +21,16 @@ public class ClienteService {
     private final ModelMapper modelMapper;
     private final ClienteRepository clienteRepository;
 
-    public ClienteResponse getClienteById(Integer id) {
-        Cliente cliente = clienteRepository.findById(id).orElse(null);
+    public ClienteResponse getClienteById(Integer id) throws ResourceNotFoundException {
+        Cliente cliente = clienteRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado"));
         return convertToClienteResponse(cliente);
     }
 
-    public ClienteResponse createCliente(ClienteRequest clienteRequest) {
+    public ClienteResponse createCliente(ClienteRequest clienteRequest) throws DuplicateFieldException {
+        Optional<Cliente> clienteOptional = clienteRepository.findByDni(clienteRequest.getDni());
+        if(clienteOptional.isPresent()) {
+            throw new DuplicateFieldException("Ya existe un cliente con el DNI: " + clienteRequest.getDni());
+        }
         Cliente cliente = convertToEntity(clienteRequest);
         return convertToClienteResponse(clienteRepository.save(cliente));
     }
@@ -33,15 +40,15 @@ public class ClienteService {
         return clientes.stream().map(this::convertToClienteResponse).toList();
     }
 
-    public void deleteCliente(Integer id) {
+    public void deleteCliente(Integer id) throws ResourceNotFoundException{
+        if(!clienteRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Cliente no encontrado");
+        }
         clienteRepository.deleteById(id);
     }
 
-    public void updateCliente(Integer id, ClienteUpdate clienteUpdate) {
-        Cliente cliente = clienteRepository.findById(id).orElse(null);
-        if(cliente == null) {
-            return;
-        }
+    public void updateCliente(Integer id, ClienteUpdate clienteUpdate) throws ResourceNotFoundException{
+        Cliente cliente = clienteRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado"));
         if(clienteUpdate.getNombre() != null && !clienteUpdate.getNombre().isEmpty()) {
             cliente.setNombre(clienteUpdate.getNombre());
         }
@@ -54,21 +61,14 @@ public class ClienteService {
         if(clienteUpdate.getEmail() != null && !clienteUpdate.getEmail().isEmpty()) {
             cliente.setEmail(clienteUpdate.getEmail());
         }
-        System.out.println(cliente);
         clienteRepository.save(cliente);
     }
 
     private Cliente convertToEntity(ClienteRequest clienteRequest) {
-        if(clienteRequest == null) {
-            return null;
-        }
         return modelMapper.map(clienteRequest, Cliente.class);
     }
 
     private ClienteResponse convertToClienteResponse(Cliente cliente) {
-        if(cliente == null) {
-            return null;
-        }
         return modelMapper.map(cliente, ClienteResponse.class);
     }
 }
