@@ -9,6 +9,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="AccountMs" />
         <module name="CustomerMs" />
+        <module name="TransactionMs" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -19,6 +20,7 @@
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="AccountMs" options="-parameters" />
       <module name="CustomerMs" options="-parameters" />
+      <module name="TransactionMs" options="-parameters" />
       <module name="config-server" options="-parameters" />
     </option>
   </component>

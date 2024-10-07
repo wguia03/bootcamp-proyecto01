@@ -76,11 +76,11 @@ public class CuentaService {
 
     private String generateAccountNumber() {
         String uuid = UUID.randomUUID().toString().replaceAll("-", "");
-        String numericString = uuid.replaceAll("[a-f]", ""); // Remove non-numeric characters
+        String numericString = uuid.replaceAll("[a-f]", "");
         if (numericString.length() < 16) {
-            numericString = String.format("%-16s", numericString).replace(' ', '0'); // Pad with zeros
+            numericString = String.format("%-16s", numericString).replace(' ', '0'); // Rellenar con ceros
         }
-        return numericString.substring(0, 16); // Ensure the length is 16 digits
+        return numericString.substring(0, 16); // Obtener una cuenta de 16 dígitos numéricos
     }
 
     public void deleteCuenta(Integer id) throws ResourceNotFoundException {
