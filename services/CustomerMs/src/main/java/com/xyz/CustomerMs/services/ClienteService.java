@@ -9,8 +9,8 @@ import com.xyz.CustomerMs.models.ClienteResponse;
 import com.xyz.CustomerMs.models.ClienteUpdate;
 import com.xyz.CustomerMs.repositories.ClienteRepository;
 import com.xyz.CustomerMs.repositories.CuentaRepository;
+import com.xyz.CustomerMs.utils.ClienteMapper;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,13 +20,13 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ClienteService {
 
-    private final ModelMapper modelMapper;
+    private final ClienteMapper clienteMapper;
     private final ClienteRepository clienteRepository;
     private final CuentaRepository cuentaRepository;
 
     public ClienteResponse getClienteById(Integer id) throws ResourceNotFoundException {
         Cliente cliente = clienteRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado"));
-        return convertToClienteResponse(cliente);
+        return clienteMapper.convertToClienteResponse(cliente);
     }
 
     public ClienteResponse createCliente(ClienteRequest clienteRequest) throws DuplicateFieldException {
@@ -34,13 +34,13 @@ public class ClienteService {
         if(clienteOptional.isPresent()) {
             throw new DuplicateFieldException("Ya existe un cliente con el DNI: " + clienteRequest.getDni());
         }
-        Cliente cliente = convertToEntity(clienteRequest);
-        return convertToClienteResponse(clienteRepository.save(cliente));
+        Cliente cliente = clienteMapper.convertToEntity(clienteRequest);
+        return clienteMapper.convertToClienteResponse(clienteRepository.save(cliente));
     }
 
     public List<ClienteResponse> getAllClientes() {
         List<Cliente> clientes = clienteRepository.findAll();
-        return clientes.stream().map(this::convertToClienteResponse).toList();
+        return clienteMapper.convertToClienteResponse(clientes);
     }
 
     public void deleteCliente(Integer id) throws ResourceNotFoundException, AssociatedRecordException {
@@ -55,26 +55,7 @@ public class ClienteService {
 
     public void updateCliente(Integer id, ClienteUpdate clienteUpdate) throws ResourceNotFoundException{
         Cliente cliente = clienteRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado"));
-        if(clienteUpdate.getNombre() != null && !clienteUpdate.getNombre().isEmpty()) {
-            cliente.setNombre(clienteUpdate.getNombre());
-        }
-        if(clienteUpdate.getApellido() != null && !clienteUpdate.getApellido().isEmpty()) {
-            cliente.setApellido(clienteUpdate.getApellido());
-        }
-        if(clienteUpdate.getDni() != null && !clienteUpdate.getDni().isEmpty()) {
-            cliente.setDni(clienteUpdate.getDni());
-        }
-        if(clienteUpdate.getEmail() != null && !clienteUpdate.getEmail().isEmpty()) {
-            cliente.setEmail(clienteUpdate.getEmail());
-        }
+        cliente = clienteMapper.updateClienteFromRequest(cliente, clienteUpdate);
         clienteRepository.save(cliente);
-    }
-
-    private Cliente convertToEntity(ClienteRequest clienteRequest) {
-        return modelMapper.map(clienteRequest, Cliente.class);
-    }
-
-    private ClienteResponse convertToClienteResponse(Cliente cliente) {
-        return modelMapper.map(cliente, ClienteResponse.class);
     }
 }
