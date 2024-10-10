@@ -3,9 +3,13 @@ package com.xyz.AccountMs.models;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 @Entity
@@ -15,6 +19,11 @@ public class Cliente {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Integer id;
+
+    @Size(max = 255)
+    @NotNull
+    @Column(name = "nombre", nullable = false)
+    private String nombre;
 
     @Size(max = 255)
     @NotNull
@@ -30,10 +39,4 @@ public class Cliente {
     @NotNull
     @Column(name = "email", nullable = false)
     private String email;
-
-    @Size(max = 255)
-    @NotNull
-    @Column(name = "nombre", nullable = false)
-    private String nombre;
-
 }

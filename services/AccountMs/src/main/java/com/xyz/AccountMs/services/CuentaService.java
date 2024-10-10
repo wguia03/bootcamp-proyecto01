@@ -5,6 +5,7 @@ import com.xyz.AccountMs.exceptions.TransactionException;
 import com.xyz.AccountMs.models.*;
 import com.xyz.AccountMs.repositories.ClienteRepository;
 import com.xyz.AccountMs.repositories.CuentaRepository;
+import com.xyz.AccountMs.utils.CuentaMapper;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -18,28 +19,25 @@ public class CuentaService {
 
     private final CuentaRepository cuentaRepository;
     private final ClienteRepository clienteRepository;
-    private final ModelMapper modelMapper;
+    private final CuentaMapper cuentaMapper;
 
     public CuentaResponse createCuenta(CuentaRequest cuentaRequest) {
         Cliente cliente = clienteRepository.findById(cuentaRequest.getClienteId()).orElseThrow();
-        Cuenta cuenta = modelMapper.map(cuentaRequest, Cuenta.class);
+        Cuenta cuenta = cuentaMapper.convertToEntity(cuentaRequest);
         cuenta.setCliente(cliente);
         cuenta.setNumeroCuenta(generateAccountNumber());
-        System.out.println(cuenta);
         cuenta = cuentaRepository.save(cuenta);
-        return modelMapper.map(cuenta, CuentaResponse.class);
+        return cuentaMapper.convertToCuentaResponse(cuenta);
     }
 
     public CuentaResponse getCuenta(Integer id) throws ResourceNotFoundException {
         Cuenta cuenta = cuentaRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Cuenta no encontrada"));
-        return modelMapper.map(cuenta, CuentaResponse.class);
+        return cuentaMapper.convertToCuentaResponse(cuenta);
     }
 
     public List<CuentaResponse> getCuentas() {
         List<Cuenta> cuentas = cuentaRepository.findAll();
-        return cuentas.stream()
-                .map(cuenta -> modelMapper.map(cuenta, CuentaResponse.class))
-                .toList();
+        return cuentaMapper.covertToCuentaResponseList(cuentas);
     }
 
     public TransaccionResponse realizarDeposito(TransaccionRequest transaccion, Integer id) throws ResourceNotFoundException {
@@ -74,6 +72,13 @@ public class CuentaService {
         }
     }
 
+    public void deleteCuenta(Integer id) throws ResourceNotFoundException {
+        if (!cuentaRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Cuenta no encontrada");
+        }
+        cuentaRepository.deleteById(id);
+    }
+
     private String generateAccountNumber() {
         String uuid = UUID.randomUUID().toString().replaceAll("-", "");
         String numericString = uuid.replaceAll("[a-f]", "");
@@ -81,12 +86,5 @@ public class CuentaService {
             numericString = String.format("%-16s", numericString).replace(' ', '0'); // Rellenar con ceros
         }
         return numericString.substring(0, 16); // Obtener una cuenta de 16 dígitos numéricos
-    }
-
-    public void deleteCuenta(Integer id) throws ResourceNotFoundException {
-        if (!cuentaRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Cuenta no encontrada");
-        }
-        cuentaRepository.deleteById(id);
     }
 }
